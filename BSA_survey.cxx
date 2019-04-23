@@ -1,4 +1,4 @@
- ////////////// Header can be modified //////////////////
+////////////// Header can be modified //////////////////
 ///////////////// Testata può essere modificata /////////
 TString bname = "Zh";
 TString dirname= bname + "_bins";
@@ -19,7 +19,7 @@ TString HELIC_NEG = "-1";
 ///////////////////////////////////
 
 void savepic (TString picname);
-Int_t BSA_survey(TString fname="",TString tname="ntuple_data"){
+Int_t BSA_survey(TString fname="",TString tname="ntuple_data", Float_t field=-1){
 
   /////////// preamble: log file, bins, etc. ///////////
   /////////// preambolo: .../////////////
@@ -58,16 +58,11 @@ Int_t BSA_survey(TString fname="",TString tname="ntuple_data"){
   ////////////////////////////////////////
 
   
-  //  TFile fin(fname,"read");
-  //  TFile *fin;
+  //  TFile fin(fname,"read"); 
   TChain *t = new TChain();
   t->Add(fname + "/" + tname);
   std::cout<<"Ntrees to be processed: "<<t->GetNtrees()<<std::endl;
-  
-  //  ntuple_data->SetAlias("xb","Q2/0.93827/2/Nu");
-  //ntuple_data->SetAlias("th_e","asin(sqrt(Q2/(10.6-Nu)/10.6))*TMath::RadToDeg()");
-  //ntuple_data->SetAlias("phiH","(PhiPQ>0)*PhiPQ + (PhiPQ<0)*(PhiPQ+360)");
-  
+
   t->SetAlias("xb","Q2/0.93827/2/Nu");
   t->SetAlias("th_e","asin(sqrt(Q2/(10.6-Nu)/10.6))*TMath::RadToDeg()");
   t->SetAlias("phiH","(PhiPQ>0)*PhiPQ + (PhiPQ<0)*(PhiPQ+360)");
@@ -77,7 +72,8 @@ Int_t BSA_survey(TString fname="",TString tname="ntuple_data"){
   //    TCut PidCut = "pid==-211" + DCPim;
   //  TCut PidCut = "pid==211" + DCPip;
   TCut PidCut = "pid==211";
-  TCut  KinCut = "Pe>2&&(P*P+0.14*0.14)>1.5&&Xf>0&&Nu/10.6<0.8&&Ze<15&&sqrt(W2p)>1.1&&10<th_e&&th_e<33" + PidCut;
+  TCut thCut = (field<0)?"9.5<th_e&&th_e<33":"6.5<th_e&&th_e<28";
+  TCut  KinCut = "Pe>2&&(P*P+0.14*0.14)>1.5&&Xf>0&&Nu/10.6<0.8&&Ze<15&&sqrt(W2p)>1.1" + thCut + PidCut;
 
   //  TCut  KinCut = "sqrt(Mx2)>1.05&&10<th_e&&th_e<30&&xb<0.1";
   
@@ -186,9 +182,10 @@ Int_t BSA_survey(TString fname="",TString tname="ntuple_data"){
   Double_t fit_m,fit_s,sum_m,sum_s;
   fit_m = hALU_bin->IntegralAndError(1,hALU_bin->GetNbinsX(),fit_s)/hALU_bin->GetNbinsX();
   sum_m = sum_sin->IntegralAndError(1,sum_sin->GetNbinsX(),sum_s)/sum_sin->GetNbinsX();
+
   fit_s = fit_s/sqrt(hALU_bin->GetNbinsX()-1);
   sum_s = sum_s/sqrt(sum_sin->GetNbinsX()-1);
-  
+
   log<<"\n\n#type\tmean\trms"<<std::endl;
   log<<"fit\t"<< fit_m <<"\t"<< fit_s <<std::endl;
   log<<"sum_sin\t"<< sum_m <<"\t"<< sum_s <<std::endl;
